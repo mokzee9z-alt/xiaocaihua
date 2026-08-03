@@ -1,26 +1,28 @@
-# PowerShell 版一鍵還原 (Windows)
+# PowerShell 版一鍵還原 v2.0 (Windows, 加密版)
 # 用法: irm <URL>/install.ps1 | iex
 $ErrorActionPreference = "Stop"
-$GithubRaw = "https://raw.githubusercontent.com/ABEN-HERMES/xiaocaihua/main"
-$BackupFile = "hermes_backup.tar.gz"
+$GithubRaw = "https://raw.githubusercontent.com/mokzee9z-alt/xiaocaihua/main"
+$BackupEnc = "hermes_backup.tar.gz.enc"
+$BackupPass = if ($env:BACKUP_PASS) { $env:BACKUP_PASS } else { "xiaocaihua-2026" }
 
-Write-Host "🍅 小菜花還原程式 v1.0 (Windows)" -ForegroundColor Cyan
+Write-Host "🍅 小菜花還原程式 v2.0 (Windows)" -ForegroundColor Cyan
 Write-Host "=========================================="
 
 $HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:USERPROFILE\.hermes" }
 
-Write-Host "[1/4] 下載備份..."
+Write-Host "[1/4] 下載備份 (加密)..."
 $tmp = "$env:TEMP\xiaocaihua_restore"
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-Invoke-WebRequest -Uri "$GithubRaw/$BackupFile" -OutFile "$tmp\$BackupFile"
-Write-Host "      -> $((Get-Item "$tmp\$BackupFile").Length / 1MB) MB"
+Invoke-WebRequest -Uri "$GithubRaw/$BackupEnc" -OutFile "$tmp\$BackupEnc"
+Write-Host "      -> $((Get-Item "$tmp\$BackupEnc").Length / 1MB) MB"
 
-Write-Host "[2/4] 解壓縮..."
+Write-Host "[2/4] 解密..."
+openssl enc -d -aes-256-cbc -pbkdf2 -pass pass:"$BackupPass" -in "$tmp\$BackupEnc" -out "$tmp\hermes_backup.tar.gz"
+Write-Host "      -> OK"
+
+Write-Host "[3/4] 解壓縮 + 套用..."
 New-Item -ItemType Directory -Force -Path $HermesHome | Out-Null
-tar -xzf "$tmp\$BackupFile" -C $HermesHome
-Write-Host "      -> $HermesHome"
-
-Write-Host "[3/4] 套用設定..."
+tar -xzf "$tmp\hermes_backup.tar.gz" -C $HermesHome
 if (Test-Path "$HermesHome\hermes") {
     Get-ChildItem "$HermesHome\hermes" -Force | Move-Item -Destination $HermesHome -Force
     Remove-Item "$HermesHome\hermes" -Recurse -Force
