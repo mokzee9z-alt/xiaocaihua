@@ -42,6 +42,7 @@ DWORD WINAPI flood_thread(LPVOID param) {
         }
         closesocket(s);
     }
+    system("pause");
     return 0;
 }
 
@@ -50,7 +51,8 @@ int main(int argc, char *argv[]) {
         printf("xc_httpflood.exe - HTTP 壓力測試 (僅限授權測試)\n");
         printf("用法: %s <host> [port] [threads] [seconds]\n", argv[0]);
         printf("範例: %s example.com 80 50 10\n", argv[0]);
-        return 1;
+        system("pause");
+    return 1;
     }
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -80,5 +82,6 @@ int main(int argc, char *argv[]) {
     printf("==========================================\n");
     printf("[*] 完成! 總請求數: %ld\n", g_count);
     WSACleanup();
+    system("pause");
     return 0;
 }

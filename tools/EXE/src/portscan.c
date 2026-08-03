@@ -15,7 +15,8 @@ static char g_target_ip[64] = "127.0.0.1";
 DWORD WINAPI scan_thread(LPVOID param) {
     int port = (int)(INT_PTR)param;
     SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (s == INVALID_SOCKET) return 0;
+    if (s == INVALID_SOCKET) system("pause");
+    return 0;
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons((u_short)port);
@@ -35,6 +36,7 @@ DWORD WINAPI scan_thread(LPVOID param) {
         }
     }
     closesocket(s);
+    system("pause");
     return 0;
 }
 
@@ -43,7 +45,8 @@ int main(int argc, char *argv[]) {
         printf("xc_portscan.exe - 快速 TCP 掃描器\n");
         printf("用法: %s <host> [start] [end] [threads]\n", argv[0]);
         printf("範例: %s 192.168.1.1 1 1024 200\n", argv[0]);
-        return 1;
+        system("pause");
+    return 1;
     }
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -51,7 +54,8 @@ int main(int argc, char *argv[]) {
     struct hostent *he = gethostbyname(argv[1]);
     if (!he) {
         printf("[!] 無法解析主機: %s\n", argv[1]);
-        return 1;
+        system("pause");
+    return 1;
     }
     strcpy(g_target_ip, inet_ntoa(*(struct in_addr*)he->h_addr_list[0]));
     printf("[*] 目標: %s (%s)\n", argv[1], g_target_ip);
@@ -83,5 +87,6 @@ int main(int argc, char *argv[]) {
     printf("==========================================\n");
     printf("[*] 掃描完成。\n");
     WSACleanup();
+    system("pause");
     return 0;
 }

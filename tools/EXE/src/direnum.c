@@ -59,7 +59,8 @@ int main(int argc, char *argv[]) {
         printf("xc_direnum.exe - 網頁目錄枚舉 (僅限授權測試)\n");
         printf("用法: %s <host> [port] [threads]\n", argv[0]);
         printf("範例: %s example.com 80 20\n", argv[0]);
-        return 1;
+        system("pause");
+    return 1;
     }
     WSADATA wsa;
     WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -86,5 +87,6 @@ int main(int argc, char *argv[]) {
     printf("==========================================\n");
     printf("[*] 完成! 掃描 %d 條路徑\n", done);
     WSACleanup();
+    system("pause");
     return 0;
 }
