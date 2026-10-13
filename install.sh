@@ -90,6 +90,7 @@ install_deps() {
     uv pip install -q -e . && return 0
     echo "      ! uv 這條失敗，改試 pip --no-build-isolation"
   fi
+  "$VPY" -m ensurepip --upgrade >/dev/null 2>&1 || true   # uv 建的 venv 沒有 pip，退回 pip 前先補上
   "$VPY" -m pip install -q --upgrade pip setuptools wheel || true
   "$VPY" -m pip install -q -e . && return 0
   echo "      ! 一般安裝失敗，改用 --no-build-isolation"
