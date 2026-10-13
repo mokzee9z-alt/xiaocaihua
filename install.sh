@@ -67,6 +67,14 @@ echo "      -> 解到 $INSTALL_DIR"
 # ── 3. venv + 依賴
 echo "[3/6] 建虛擬環境並安裝依賴（第一次約 2–5 分鐘）..."
 cd "$INSTALL_DIR"
+
+# 有 uv 最好；沒有就先試著裝（uv 的解析器比系統 pip 穩，會自帶 Python 3.11）
+if ! command -v uv >/dev/null 2>&1; then
+  echo "      → 沒看到 uv，試著安裝（失敗也沒關係，會改用 pip）"
+  curl -LsSf https://astral.sh/uv/install.sh 2>/dev/null | sh >/dev/null 2>&1 || true
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
 if command -v uv >/dev/null 2>&1; then
   uv venv --python 3.11 .venv >/dev/null 2>&1 || uv venv .venv >/dev/null 2>&1 || true
 fi
@@ -74,12 +82,23 @@ if [ ! -x "$INSTALL_DIR/.venv/bin/python" ]; then
   "$PY" -m venv .venv
 fi
 VPY="$INSTALL_DIR/.venv/bin/python"
-if command -v uv >/dev/null 2>&1; then
-  uv pip install -q -e . || "$VPY" -m pip install -e .
-else
-  "$VPY" -m pip install -q --upgrade pip
-  "$VPY" -m pip install -q -e .
-fi
+
+install_deps() {
+  # 1) 正常裝  2) 關掉 build isolation（有些鏡像站沒有 Hermes 指定的 setuptools==83.0.0，
+  #    會死在「installing build dependencies」）  3) 直連官方 PyPI 再試
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install -q -e . && return 0
+    echo "      ! uv 這條失敗，改試 pip --no-build-isolation"
+  fi
+  "$VPY" -m pip install -q --upgrade pip setuptools wheel || true
+  "$VPY" -m pip install -q -e . && return 0
+  echo "      ! 一般安裝失敗，改用 --no-build-isolation"
+  "$VPY" -m pip install -q --no-build-isolation -e . && return 0
+  echo "      ! 再失敗，改用官方 PyPI 索引"
+  "$VPY" -m pip install -q -i https://pypi.org/simple -e . && return 0
+  return 1
+}
+install_deps || { echo "❌ 依賴安裝失敗（把上面的訊息貼給我）"; exit 1; }
 echo "      -> OK"
 
 # ── 4. 放一個 hermes 指令
